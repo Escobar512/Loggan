@@ -1,0 +1,279 @@
+<!-- entry-form.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entry Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    form {
+      max-width: 600px;
+      margin: auto;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+      resize: none; /* Prevents text area from being resizable */
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #dateDisplay {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    #dateButtons {
+      margin-bottom: 20px;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Entry Form</h1>
+
+  
+  <div id="dateDisplay"></div>
+  <div id="dateButtons">
+    <button onclick="changeDate(-1)">◄</button>
+    <button onclick="changeDate(1)">►</button>
+  </div>
+
+  <form id="entryForm" action="/submit-entry" method="post">
+    <label for="Date">Date:</label>
+    <input type="date" name="Date" id="Date" >
+
+    <label for="WhatHurts">What Hurts:</label>
+    <textarea type="text" name="WhatHurts"><%= WhatHurts !== undefined ? WhatHurts : '' %></textarea>
+  
+    <label for="FeelsLog">Feels Log:</label>
+    <textarea name="FeelsLog" rows="4"><%= FeelsLog !== undefined ? FeelsLog : '' %></textarea>
+  
+    <label for="SelfesteemLog">Self-esteem Log:</label>
+    <textarea name="SelfesteemLog" rows="4"><%= SelfesteemLog !== undefined ? SelfesteemLog : '' %></textarea>
+  
+    <label for="Expense">Expense:</label>
+    <input type="number" name="Expense" value="<%= Expense !== undefined ? Expense : '' %>">
+  
+    <label for="ExpensesLog">Expenses Log:</label>
+    <textarea name="ExpensesLog" rows="4"><%= ExpensesLog !== undefined ? ExpensesLog : '' %></textarea>
+  
+    <label for="MovementCounter">Movement Counter:</label>
+    <input type="checkbox" name="MovementCounter" <%= MovementCounter === true ? 'checked' : '' %> >
+  
+    <label for="MovementLog">Movement Log:</label>
+    <textarea name="MovementLog" rows="4"><%= MovementLog !== undefined ? MovementLog : '' %></textarea>
+  
+    <label for="MeditationCounter">Meditation Counter:</label>
+    <input type="checkbox" name="MeditationCounter" <%= MeditationCounter === true ? 'checked' : '' %> >
+  
+    <label for="MeditationLog">Meditation Log:</label>
+    <textarea name="MeditationLog" rows="4"><%= MeditationLog !== undefined ? MeditationLog : '' %></textarea>
+  
+    <label for="CokeCounter">Coke Counter:</label>
+    <input type="checkbox" name="CokeCounter" <%= CokeCounter === true ? 'checked' : '' %> >
+  
+    <label for="CokeLog">Coke Log:</label>
+    <textarea name="CokeLog" rows="4"><%= CokeLog !== undefined ? CokeLog : '' %></textarea>
+  
+    <label for="MusicPracticeCounter">Music Practice Counter:</label>
+    <input type="checkbox" name="MusicPracticeCounter" <%= MusicPracticeCounter === true ? 'checked' : '' %> >
+  
+    <label for="MusicPracticeLog">Music Practice Log:</label>
+    <textarea name="MusicPracticeLog" rows="4"><%= MusicPracticeLog !== undefined ? MusicPracticeLog : '' %></textarea>
+  
+    <label for="SongProgress">Song Progress (0-100):</label>
+    <input type="number" name="SongProgress" min="0" max="100" value="<%= SongProgress !== undefined ? SongProgress : '' %>">
+  
+    <label for="SongLog">Song Log:</label>
+    <textarea name="SongLog" rows="4"><%= SongLog !== undefined ? SongLog : '' %></textarea>
+  
+    <label for="SongwritingProgress">Songwriting Progress (0-100):</label>
+    <input type="number" name="SongwritingProgress" min="0" max="100" value="<%= SongwritingProgress !== undefined ? SongwritingProgress : '' %>">
+  
+    <label for="SongwritingLog">Songwriting Log:</label>
+    <textarea name="SongwritingLog" rows="4"><%= SongwritingLog !== undefined ? SongwritingLog : '' %></textarea>
+  
+    <label for="WritingProgress">Writing Progress (0-100):</label>
+    <input type="number" name="WritingProgress" min="0" max="100" value="<%= WritingProgress !== undefined ? WritingProgress : '' %>">
+  
+    <label for="WritingLog">Writing Log:</label>
+    <textarea name="WritingLog" rows="4"><%= WritingLog !== undefined ? WritingLog : '' %></textarea>
+  
+    <label for="ReadCounter">Read Counter:</label>
+    <input type="checkbox" name="ReadCounter" <%= ReadCounter === true ? 'checked' : '' %> >
+  
+    <label for="ReadLog">Read Log:</label>
+    <textarea name="ReadLog" rows="4"><%= ReadLog !== undefined ? ReadLog : '' %></textarea>
+  
+    <label for="JapaneseProgress">Japanese Progress (0-100):</label>
+    <input type="number" name="JapaneseProgress" min="0" max="100" value="<%= JapaneseProgress !== undefined ? JapaneseProgress : '' %>">
+  
+    <label for="JapaneseLog">Japanese Log:</label>
+    <textarea name="JapaneseLog" rows="4"><%= JapaneseLog !== undefined ? JapaneseLog : '' %></textarea>
+  
+    <label for="JapaneseLessonCounter">Japanese Lesson Counter:</label>
+    <input type="checkbox" name="JapaneseLessonCounter" <%= JapaneseLessonCounter === true ? 'checked' : '' %> >
+  
+    <label for="OmarCheckup">Omar Checkup:</label>
+    <input type="checkbox" name="OmarCheckup" <%= OmarCheckup === true ? 'checked' : '' %> >
+  
+    <label for="OmarHangout">Omar Hangout:</label>
+    <input type="checkbox" name="OmarHangout" <%= OmarHangout === true ? 'checked' : '' %> >
+  
+    <label for="DanielaCheckup">Daniela Checkup:</label>
+    <input type="checkbox" name="DanielaCheckup" <%= DanielaCheckup === true ? 'checked' : '' %> >
+  
+    <label for="KevinCheckup">Kevin Checkup:</label>
+    <input type="checkbox" name="KevinCheckup" <%= KevinCheckup === true ? 'checked' : '' %> >
+  
+    <label for="CoreCheckup">Core Checkup:</label>
+    <input type="checkbox" name="CoreCheckup" <%= CoreCheckup === true ? 'checked' : '' %> >
+  
+    <label for="CoffeeLog">Coffee Log:</label>
+    <textarea name="CoffeeLog" rows="4"><%= CoffeeLog !== undefined ? CoffeeLog : '' %></textarea>
+  
+    <label for="Score">Score:</label>
+    <input type="number" name="Score" min="0" max="5" step="0.5" value="<%= Score !== undefined ? Score : '' %>">
+
+    <button type="submit">Submit</button>
+  </form>
+  <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+  <script>
+
+
+    $(document).ready(function() {
+
+          // Check if there's a saved date in localStorage
+    var savedDate = localStorage.getItem('savedDate');
+    console.log(savedDate);
+
+// If there's a saved date, use it; otherwise, use today's date
+      var defaultDate =  savedDate == null ? new Date() : new Date(formatDate(savedDate));
+      var now = defaultDate;
+      
+      var day = ("0" + now.getDate()).slice(-2);
+      var month = ("0" + (now.getMonth() + 1)).slice(-2);
+      var today = now.getFullYear()+"-"+(month)+"-"+(day) ;
+      $('#Date').val(today);
+      $('#dateDisplay').text(formatDate(today));
+    });
+
+    $('#Date').change(function(){
+      $('#dateDisplay').text(formatDate($('#Date').val()));
+
+      dateToSave = new Date($('#Date').val())
+
+      localStorage.setItem("savedDate", dateToSave.toISOString().split('T')[0]);
+
+      // Fetch the updated content from the server
+      fetch("http://localhost:8080/ep_Entry/EntryByDate", {
+        method: "POST",
+        body: JSON.stringify({
+          Date: $('#Date').val()
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8"
+        }
+      })
+      .then(response => response.text())
+      .then(htmlContent => {
+        // Update the page content with the fetched HTML
+        $('#entryForm').html(htmlContent);
+      })
+      .catch(error => console.error("Error fetching updated content:", error));
+
+    });
+
+    window.addEventListener('beforeunload', function() {
+    // Clear local storage when the page is unloaded (refreshed or closed)
+    localStorage.clear();
+  });
+    
+    function updateDateDisplay() {
+      const dateControl = document.querySelector('input[name="Date"]');
+      const formattedDate = formatDate(new Date(dateControl.value));
+      document.getElementById('dateDisplay').textContent = formattedDate;
+    }
+
+    function changeDate(days) {
+      const currentDate = new Date(formatDate($('#Date').val()));
+      currentDate.setDate(currentDate.getDate() + days);
+      $('#dateDisplay').text(formatDate(currentDate));
+      $('#Date').val(currentDate.toISOString().split('T')[0]);
+    }
+
+    function formatDate(inputDate) {
+      const options = { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' };
+      return new Date(inputDate).toLocaleDateString('en-MX', options);
+    }
+
+
+    document.getElementById("entryForm").addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      // Convert form data to JSON
+      const formData = {};
+      new FormData(event.target).forEach((value, key) => {
+        // If the field is a checkbox, set its value to true if checked, otherwise false
+        if (event.target.elements[key] && event.target.elements[key].type === 'checkbox') {
+          formData[key] = event.target.elements[key].checked;
+        } else {
+          formData[key] = value;
+        }
+      });
+
+      // Check for unchecked checkboxes and set their value to false
+      Array.from(event.target.elements)
+        .filter(element => element.type === 'checkbox' && !element.checked)
+        .forEach(element => {
+          formData[element.name] = false;
+        });
+
+      // Make a POST request with the form data
+      const response = await fetch("ep_Entry/submit-entry", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        alert("Entry submitted successfully!");
+      } else {
+        alert("Error submitting entry");
+      }
+    });
+
+
+
+  </script>
+</body>
+</html>
