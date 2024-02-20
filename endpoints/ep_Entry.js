@@ -18,6 +18,12 @@ router.get("/", async (req, res) => {
     const templatePath = path.join(__dirname, '../views', 'entryForm.ejs');
     const template = await fsPromises.readFile(templatePath, 'utf-8');
 
+    const today = new Date();
+    const dataLast = await EntryModel
+        .findOne({ Date: { $lt: today } })
+        .sort({ Date: -1 })
+        .limit(1);
+
     const dataRender = {
       WhatHurts: "",
       FeelsLog: "",
@@ -33,10 +39,13 @@ router.get("/", async (req, res) => {
       MusicPracticeCounter: false,
       MusicPracticeLog: "",
       SongProgress: 0,
+      SongCounter: dataLast.SongCounter ?? 0,
       SongLog: "",
       SongwritingProgress: 0,
+      SongwritingCounter: dataLast.SongwritingCounter ?? 0,
       SongwritingLog: "",
       WritingProgress: 0,
+      WritingCounter: dataLast.WritingCounter ?? 0,
       WritingLog: "",
       ReadCounter: false,
       ReadLog: "",

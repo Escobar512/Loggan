@@ -65,7 +65,7 @@
     <button onclick="changeDate(1)">►</button>
   </div>
 
-  <form id="entryForm" action="/submit-entry" method="post">
+  <form id="entryForm" action="/ep_Entry/submit-entry" method="post">
     <label for="Date">Date:</label>
     <input type="date" name="Date" id="Date" >
 
@@ -110,18 +110,27 @@
   
     <label for="SongProgress">Song Progress (0-100):</label>
     <input type="number" name="SongProgress" min="0" max="100" value="<%= SongProgress !== undefined ? SongProgress : '' %>">
+
+    <label for="SongCounter">Song Counter</label>
+    <input type="number" name="SongCounter" min="0" value="<%= SongCounter !== undefined ? SongCounter : 0 %>">
   
     <label for="SongLog">Song Log:</label>
     <textarea name="SongLog" rows="4"><%= SongLog !== undefined ? SongLog : '' %></textarea>
   
     <label for="SongwritingProgress">Songwriting Progress (0-100):</label>
     <input type="number" name="SongwritingProgress" min="0" max="100" value="<%= SongwritingProgress !== undefined ? SongwritingProgress : '' %>">
+
+    <label for="SongwritingCounter">Song Writing Counter</label>
+    <input type="number" name="SongwritingCounter" min="0" value="<%= SongwritingCounter !== undefined ? SongwritingCounter : 0 %>">
   
     <label for="SongwritingLog">Songwriting Log:</label>
     <textarea name="SongwritingLog" rows="4"><%= SongwritingLog !== undefined ? SongwritingLog : '' %></textarea>
   
     <label for="WritingProgress">Writing Progress (0-100):</label>
     <input type="number" name="WritingProgress" min="0" max="100" value="<%= WritingProgress !== undefined ? WritingProgress : '' %>">
+
+    <label for="WritingCounter">Writing Counter</label>
+    <input type="number" name="WritingCounter" min="0" value="<%= WritingCounter !== undefined ? WritingCounter : 0 %>">
   
     <label for="WritingLog">Writing Log:</label>
     <textarea name="WritingLog" rows="4"><%= WritingLog !== undefined ? WritingLog : '' %></textarea>
@@ -186,30 +195,40 @@
     });
 
     $('#Date').change(function(){
-      $('#dateDisplay').text(formatDate($('#Date').val()));
+  $('#dateDisplay').text(formatDate($('#Date').val()));
 
-      dateToSave = new Date($('#Date').val())
+  dateToSave = new Date($('#Date').val())
 
-      localStorage.setItem("savedDate", dateToSave.toISOString().split('T')[0]);
+  localStorage.setItem("savedDate", dateToSave.toISOString().split('T')[0]);
 
-      // Fetch the updated content from the server
-      fetch("http://localhost:8080/ep_Entry/EntryByDate", {
-        method: "POST",
-        body: JSON.stringify({
-          Date: $('#Date').val()
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8"
+  // Fetch the updated content from the server
+  fetch("http://localhost:8080/ep_Entry/EntryByDate", {
+    method: "POST",
+    body: JSON.stringify({
+      Date: $('#Date').val()
+    }),
+    headers: {
+      "Content-type": "application/json; charset=UTF-8"
+    }
+  })
+  .then(response => response.json())
+  .then(formData => {
+    // Update form elements with fetched data
+    console.log(formData);
+    Object.keys(formData).forEach(key => {
+      const element = document.querySelector(`[name="${key}"]`);
+      if (element) {
+        if (element.type === 'checkbox') {
+          element.checked = formData[key];
+        } else {
+          element.value = formData[key];
         }
-      })
-      .then(response => response.text())
-      .then(htmlContent => {
-        // Update the page content with the fetched HTML
-        $('#entryForm').html(htmlContent);
-      })
-      .catch(error => console.error("Error fetching updated content:", error));
-
+      }
     });
+  })
+  .catch(error => console.error("Error fetching updated content:", error));
+
+});
 
     window.addEventListener('beforeunload', function() {
     // Clear local storage when the page is unloaded (refreshed or closed)
@@ -235,9 +254,9 @@
     }
 
 
-    document.getElementById("entryForm").addEventListener("submit", async function(event) {
+    document.addEventListener("submit", async function (event) {
       event.preventDefault();
-
+      console.log("dick");
       // Convert form data to JSON
       const formData = {};
       new FormData(event.target).forEach((value, key) => {
@@ -267,6 +286,7 @@
 
       if (response.ok) {
         alert("Entry submitted successfully!");
+        console.log(response);
       } else {
         alert("Error submitting entry");
       }

@@ -63,6 +63,11 @@ const entrySchema = new mongoose.Schema({
     max: 100,
     required: true
   },
+  SongCounter: {
+    type: Number,
+    min: 0,
+    required: true
+  },
   SongLog: {
     type: String,
     required: true
@@ -73,6 +78,11 @@ const entrySchema = new mongoose.Schema({
     max: 100,
     required: true
   },
+  SongwritingCounter: {
+    type: Number,
+    min: 0,
+    required: true
+  },
   SongwritingLog: {
     type: String,
     required: true
@@ -81,6 +91,11 @@ const entrySchema = new mongoose.Schema({
     type: Number,
     min: 0,
     max: 100,
+    required: true
+  },
+  WritingCounter: {
+    type: Number,
+    min: 0,
     required: true
   },
   WritingLog: {
