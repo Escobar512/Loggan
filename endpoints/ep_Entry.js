@@ -8,8 +8,9 @@ const ejs = require('ejs');
 const puppeteer = require('puppeteer');
 
 
-const {createEntry, getEntry} = require("../controllers/c_Entry");
+const {createEntry, getEntry, assingProgress} = require("../controllers/c_Entry");
 const { EntryModel } = require("../models");
+const e = require("express");
 
 router.get("/", async (req, res) => {
 
@@ -20,9 +21,15 @@ router.get("/", async (req, res) => {
 
     const today = new Date();
     const dataLast = await EntryModel
-        .findOne({ Date: { $lt: today } })
+        .find({ Date: { $lt: today } })
         .sort({ Date: -1 })
-        .limit(1);
+        .limit(2);
+
+
+    let lastSongProgress = await assingProgress("SongCounter", "SongProgress", dataLast);
+    let lastSongWritingProgress = await assingProgress("SongwritingCounter", "SongwritingProgress", dataLast);
+    let lastWritingProgress = await assingProgress("WritingCounter", "WritingProgress", dataLast);
+
 
     const dataRender = {
       WhatHurts: "",
@@ -38,18 +45,18 @@ router.get("/", async (req, res) => {
       CokeLog: "",
       MusicPracticeCounter: false,
       MusicPracticeLog: "",
-      SongProgress: 0,
-      SongCounter: dataLast.SongCounter ?? 0,
+      SongProgress: lastSongProgress ?? 0,
+      SongCounter: dataLast[0].SongCounter ?? 0,
       SongLog: "",
-      SongwritingProgress: 0,
-      SongwritingCounter: dataLast.SongwritingCounter ?? 0,
+      SongwritingProgress: lastSongWritingProgress ?? 0,
+      SongwritingCounter: dataLast[0].SongwritingCounter ?? 0,
       SongwritingLog: "",
-      WritingProgress: 0,
-      WritingCounter: dataLast.WritingCounter ?? 0,
+      WritingProgress: lastWritingProgress ?? 0,
+      WritingCounter: dataLast[0].WritingCounter ?? 0,
       WritingLog: "",
       ReadCounter: false,
       ReadLog: "",
-      JapaneseProgress: 0,
+      JapaneseProgress: dataLast[0].JapaneseProgress ?? 0,
       JapaneseLog: "",
       JapaneseLessonCounter: false,
       OmarCheckup: false,
@@ -78,6 +85,63 @@ router.get("/", async (req, res) => {
     throw error; // Handle or rethrow the error as needed
   }
 });
+
+router.post("/React", async (req, res) => {
+  try {
+    const today = new Date();
+    const dataLast = await EntryModel
+      .find({ Date: { $lt: today } })
+      .sort({ Date: -1 })
+      .limit(2);
+
+    let lastSongProgress = await assingProgress("SongCounter", "SongProgress", dataLast);
+    let lastSongWritingProgress = await assingProgress("SongwritingCounter", "SongwritingProgress", dataLast);
+    let lastWritingProgress = await assingProgress("WritingCounter", "WritingProgress", dataLast);
+
+    const responseData = {
+      WhatHurts: "",
+      FeelsLog: "",
+      SelfesteemLog: "",
+      Expense: 0, // Assuming a default value for Expense
+      ExpensesLog: "",
+      MovementCounter: false,
+      MovementLog: "",
+      MeditationCounter: false,
+      MeditationLog: "",
+      CokeCounter: false,
+      CokeLog: "",
+      MusicPracticeCounter: false,
+      MusicPracticeLog: "",
+      SongProgress: lastSongProgress ?? 0,
+      SongCounter: dataLast[0].SongCounter ?? 0,
+      SongLog: "",
+      SongwritingProgress: lastSongWritingProgress ?? 0,
+      SongwritingCounter: dataLast[0].SongwritingCounter ?? 0,
+      SongwritingLog: "",
+      WritingProgress: lastWritingProgress ?? 0,
+      WritingCounter: dataLast[0].WritingCounter ?? 0,
+      WritingLog: "",
+      ReadCounter: false,
+      ReadLog: "",
+      JapaneseProgress: dataLast[0].JapaneseProgress ?? 0,
+      JapaneseLog: "",
+      JapaneseLessonCounter: false,
+      OmarCheckup: false,
+      OmarHangout: false,
+      DanielaCheckup: false,
+      KevinCheckup: false,
+      CoreCheckup: false,
+      CoffeeLog: "",
+      Score: 0
+    };
+
+    res.json(responseData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 router.post("/EntryByDate", getEntry);
 

@@ -6,7 +6,7 @@ const puppeteer = require('puppeteer');
 
 const createEntry = async (req, res) => {
     try{
-        const body = req.body;
+        let body = req.body;
         const data = await EntryModel.create(body);
         console.log(data);
         res.send(data);
@@ -18,15 +18,30 @@ const createEntry = async (req, res) => {
 };
 
 
+const assingProgress = (nameOfCounter, nameOfProgress, dataLast) => {
+    if(dataLast[0][nameOfCounter] == dataLast[1][nameOfCounter]){
+      return dataLast[0][nameOfProgress]
+    }  
+    else{
+      return 0
+    }
+  }
+
+
 const getEntry = async (req, res) => {
     try{
         const body = req.body;
         const data = await EntryModel.findOne({Date: body.Date});
 
         const dataLast = await EntryModel
-        .findOne({ Date: { $lt: body.Date } })
+        .find({ Date: { $lt: body.Date } })
         .sort({ Date: -1 })
-        .limit(1);
+        .limit(2);
+
+        let lastSongProgress = await assingProgress("SongCounter", "SongProgress", dataLast);
+        let lastSongWritingProgress = await assingProgress("SongwritingCounter", "SongwritingProgress", dataLast);
+        let lastWritingProgress = await assingProgress("WritingCounter", "WritingProgress", dataLast);
+    
 
         // Read the EJS template from the file
         const templatePath = path.join(__dirname, '../views', 'entryForm.ejs');
@@ -39,7 +54,7 @@ const getEntry = async (req, res) => {
             WhatHurts: data.WhatHurts ?? "",
             FeelsLog: data.FeelsLog ?? "",
             SelfesteemLog: data.SelfesteemLog ?? "",
-            Expense: data.Expense ?? 0, // Assuming a default value for Expense
+            Expense: data.Expense ?? 0, 
             ExpensesLog: data.ExpensesLog ?? "",
             MovementCounter: data.MovementCounter ?? false,
             MovementLog: data.MovementLog ?? "",
@@ -50,13 +65,13 @@ const getEntry = async (req, res) => {
             MusicPracticeCounter: data.MusicPracticeCounter ?? false,
             MusicPracticeLog: data.MusicPracticeLog ?? "",
             SongProgress: data.SongProgress ?? 0,
-            SongCounter: dataLast?.SongCounter ?? 0,  
+            SongCounter: data?.SongCounter ?? 0,  
             SongLog: data.SongLog ?? "",
             SongwritingProgress: data.SongwritingProgress ?? 0,
-            SongwritingCounter: dataLast?.SongwritingCounter ?? 0,  
+            SongwritingCounter: data?.SongwritingCounter ?? 0,  
             SongwritingLog: data.SongwritingLog ?? "",
             WritingProgress: data.WritingProgress ?? 0,
-            WritingCounter: dataLast?.WritingCounter ?? 0,  
+            WritingCounter: data?.WritingCounter ?? 0,  
             WritingLog: data.WritingLog ?? "",
             ReadCounter: data.ReadCounter ?? false,
             ReadLog: data.ReadLog ?? "",
@@ -88,18 +103,18 @@ const getEntry = async (req, res) => {
                 CokeLog: "",
                 MusicPracticeCounter: false,
                 MusicPracticeLog: "",
-                SongProgress: 0,
-                SongCounter: dataLast?.SongCounter ?? 0,  
+                SongProgress: lastSongProgress ?? 0,
+                SongCounter: dataLast[0]?.SongCounter ?? 0,  
                 SongLog: "",
-                SongwritingProgress: 0,
-                SongwritingCounter: dataLast?.SongwritingCounter ?? 0,
+                SongwritingProgress: lastSongWritingProgress ?? 0,
+                SongwritingCounter: dataLast[0]?.SongwritingCounter ?? 0,
                 SongwritingLog: "",
-                WritingProgress: 0,
-                WritingCounter: dataLast?.WritingCounter ?? 0,
+                WritingProgress: lastWritingProgress ?? 0,
+                WritingCounter: dataLast[0]?.WritingCounter ?? 0,
                 WritingLog: "",
                 ReadCounter: false,
                 ReadLog: "",
-                JapaneseProgress: 0,
+                JapaneseProgress: dataLast[0]?.JapaneseProgress ?? 0,
                 JapaneseLog: "",
                 JapaneseLessonCounter: false,
                 OmarCheckup: false,
@@ -124,12 +139,14 @@ const getEntry = async (req, res) => {
         // await browser.close();
 
         // res.setHeader('Content-Type', 'text/html');
-        res.send(JSON.stringify(dataRender)); // Send the HTML as a response
+        res.json(dataRender); // Send the HTML as a response
     }catch(e)
     {
+    console.log(e.message);
        res.send(e.message);
+       
     }
     
 };
 
-module.exports = {createEntry, getEntry};
+module.exports = {createEntry, getEntry, assingProgress};
