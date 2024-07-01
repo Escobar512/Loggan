@@ -1,15 +1,22 @@
-const { EntryModel } = require('../models')
+const { EntryModel, TopicModel } = require('../models')
 const path = require('path');
 const fsPromises = require('fs').promises;
-const ejs = require('ejs');
-const puppeteer = require('puppeteer');
+const fs = require('fs');
+const util = require('util');
+const readFile = util.promisify(fs.readFile);
 
 const createEntry = async (req, res) => {
     try{
-        let body = req.body;
-        const data = await EntryModel.create(body);
-        console.log(data);
-        res.send(data);
+      const entries = Object.entries(req.body);
+        for(const entry of entries){
+          if(entry[0] != "Date"){
+            const entryData = {"topicName": entry[0], "entryDate": entries[0][1], "content": String(entry[1])}
+            const data = await EntryModel.create(entryData);
+            console.log(data);
+          }
+        }
+        
+        res.send("ok");
     }catch(e)
     {
        res.sendStatus(500);
@@ -18,128 +25,121 @@ const createEntry = async (req, res) => {
 };
 
 
-const assingProgress = (nameOfCounter, nameOfProgress, dataLast) => {
-    if(dataLast[0][nameOfCounter] == dataLast[1][nameOfCounter]){
-      return dataLast[0][nameOfProgress]
-    }  
-    else{
-      return 0
-    }
+async function assingProgress(counterName, progressName, date){
+
+  const counter = await EntryModel
+        .find({ entryDate: { $lt: date }, topicName: counterName })
+        .sort({ entryDate: -1 })
+        .limit(2);
+
+        const progress = await EntryModel
+        .find({ entryDate: { $lt: date }, topicName: progressName })
+        .sort({ entryDate: -1 })
+        .limit(1);
+
+        if(counter.length > 1 && progress.length > 0){
+          if(counter[0].content == counter[1].content){
+            return progress[0].content
+          }  
+          else{
+            return 0
+          }
+        }
+        else{
+          return 0;
+        }
   }
 
+  async function assingCounter(counterName, date){
+
+    const counter = await EntryModel
+          .find({ entryDate: { $lt: date }, topicName: counterName })
+          .sort({ entryDate: -1 })
+          .limit(1);
+  
+          if(counter.length > 0){
+              return counter[0].content
+          }
+          else{
+            return 0;
+          }
+    }
+
+
+  const entryMigration = async (req, res) => {
+    try {
+      const data = await readFile("./entries.json", 'utf8');
+      const entries = JSON.parse(data);
+  
+      for (const entryLogged of entries) {
+        const entryValues = Object.entries(entryLogged);
+  
+        for (const entry of entryValues) {
+          if (entry[0] !== "Date" && entry[0] !== "_id" && entry[0] !== "__v") {
+            const unixTimestampStr = entryValues[1][1]["$date"]["$numberLong"];
+            const unixTimestamp = parseInt(unixTimestampStr, 10);
+            const utcDate = new Date(unixTimestamp);
+            const offset = 6 * 60; 
+            const adjustedDate = new Date(utcDate.getTime() + offset * 60 * 1000);
+            const formattedDate = adjustedDate.toISOString().split('T')[0];
+            const entryData = { "topicName": entry[0], "entryDate": formattedDate, "content": String(entry[1])};
+
+            try{
+              const createdEntry = await EntryModel.create(entryData);
+              console.log(createdEntry);
+            }
+            catch(error){
+              // console.log(adjustedDate);
+              // console.log(topic.Name);
+              continue;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error reading or processing entries:', error);
+    }
+  };
 
 const getEntry = async (req, res) => {
     try{
         const body = req.body;
-        const data = await EntryModel.findOne({Date: body.Date});
+        const entry = await EntryModel.find({entryDate: body.Date});
+        const topics = await TopicModel.find();
 
-        const dataLast = await EntryModel
-        .find({ Date: { $lt: body.Date } })
-        .sort({ Date: -1 })
-        .limit(2);
+        let entryTopics = entry.map(entryTopic => {
+          let topic = topics.find(topic => topic.Name === entryTopic.topicName);
+          if (topic) {
+              return {
+                  topicName: entryTopic.topicName,
+                  content: entryTopic.content,
+                  type: topic.Type
+              };
+          }
+          return null;
+      }).filter(Boolean); 
 
-        let lastSongProgress = await assingProgress("SongCounter", "SongProgress", dataLast);
-        let lastSongWritingProgress = await assingProgress("SongwritingCounter", "SongwritingProgress", dataLast);
-        let lastWritingProgress = await assingProgress("WritingCounter", "WritingProgress", dataLast);
-    
+        let lastSongProgress = await assingProgress("SongCounter", "SongProgress", body.Date);
+        let lastSongWritingProgress = await assingProgress("SongwritingCounter", "SongwritingProgress", body.Date);
+        let lastWritingProgress = await assingProgress("WritingCounter", "WritingProgress", body.Date);
 
-        // Read the EJS template from the file
-        const templatePath = path.join(__dirname, '../views', 'entryForm.ejs');
-        const template = await fsPromises.readFile(templatePath, 'utf-8');
+        let lastSongCounter = await assingCounter("SongCounter", body.Date);
+        let lastSongWritingCounter = await assingCounter("SongwritingCounter", body.Date);
+        let lastWritingCounter = await assingCounter("WritingCounter", body.Date);
 
-        var dataRender;
 
-        if(data){
-         dataRender = {
-            WhatHurts: data.WhatHurts ?? "",
-            FeelsLog: data.FeelsLog ?? "",
-            SelfesteemLog: data.SelfesteemLog ?? "",
-            Expense: data.Expense ?? 0, 
-            ExpensesLog: data.ExpensesLog ?? "",
-            MovementCounter: data.MovementCounter ?? false,
-            MovementLog: data.MovementLog ?? "",
-            MeditationCounter: data.MeditationCounter ?? false,
-            MeditationLog: data.MeditationLog ?? "",
-            CokeCounter: data.CokeCounter ?? false,
-            CokeLog: data.CokeLog ?? "",
-            MusicPracticeCounter: data.MusicPracticeCounter ?? false,
-            MusicPracticeLog: data.MusicPracticeLog ?? "",
-            SongProgress: data.SongProgress ?? 0,
-            SongCounter: data?.SongCounter ?? 0,  
-            SongLog: data.SongLog ?? "",
-            SongwritingProgress: data.SongwritingProgress ?? 0,
-            SongwritingCounter: data?.SongwritingCounter ?? 0,  
-            SongwritingLog: data.SongwritingLog ?? "",
-            WritingProgress: data.WritingProgress ?? 0,
-            WritingCounter: data?.WritingCounter ?? 0,  
-            WritingLog: data.WritingLog ?? "",
-            ReadCounter: data.ReadCounter ?? false,
-            ReadLog: data.ReadLog ?? "",
-            JapaneseProgress: data.JapaneseProgress ?? 0,
-            JapaneseLog: data.JapaneseLog ?? "",
-            JapaneseLessonCounter: data.JapaneseLessonCounter ?? false,
-            OmarCheckup: data.OmarCheckup ?? false,
-            OmarHangout: data.OmarHangout ?? false,
-            DanielaCheckup: data.DanielaCheckup ?? false,
-            KevinCheckup: data.KevinCheckup ?? false,
-            CoreCheckup: data.CoreCheckup ?? false,
-            CoffeeLog: data.CoffeeLog ?? "",
-            Score: data.Score ?? 0
-          };
+        var formData = {};
+
+        if(entryTopics.length > 0){
+          // for(const topic of entryTopics){
+          //   formData[topic.topicName] = topic.content;
+          // }
+          res.json(entryTopics); 
         }
         else{
-
-             dataRender = {
-                WhatHurts: "",
-                FeelsLog: "",
-                SelfesteemLog: "",
-                Expense: 0, // Assuming a default value for Expense
-                ExpensesLog: "",
-                MovementCounter: false,
-                MovementLog: "",
-                MeditationCounter: false,
-                MeditationLog: "",
-                CokeCounter: false,
-                CokeLog: "",
-                MusicPracticeCounter: false,
-                MusicPracticeLog: "",
-                SongProgress: lastSongProgress ?? 0,
-                SongCounter: dataLast[0]?.SongCounter ?? 0,  
-                SongLog: "",
-                SongwritingProgress: lastSongWritingProgress ?? 0,
-                SongwritingCounter: dataLast[0]?.SongwritingCounter ?? 0,
-                SongwritingLog: "",
-                WritingProgress: lastWritingProgress ?? 0,
-                WritingCounter: dataLast[0]?.WritingCounter ?? 0,
-                WritingLog: "",
-                ReadCounter: false,
-                ReadLog: "",
-                JapaneseProgress: dataLast[0]?.JapaneseProgress ?? 0,
-                JapaneseLog: "",
-                JapaneseLessonCounter: false,
-                OmarCheckup: false,
-                OmarHangout: false,
-                DanielaCheckup: false,
-                KevinCheckup: false,
-                CoreCheckup: false,
-                CoffeeLog: "",
-                Score: 0
-              };
-            }
-           
-        
-
-        // Render the EJS template with data
-        // const htmlContent = ejs.render(template, dataRender);
-
-        // // Create a PDF using Puppeteer
-        // const browser = await puppeteer.launch({ headless: "new" });
-        // const page = await browser.newPage();
-        // await page.setContent(htmlContent, { waitUntil: 'networkidle0' }); // Set content and wait for network idl
-        // await browser.close();
-
-        // res.setHeader('Content-Type', 'text/html');
-        res.json(dataRender); // Send the HTML as a response
+         res.send("empty");
+        }
+      
     }catch(e)
     {
     console.log(e.message);
@@ -149,4 +149,22 @@ const getEntry = async (req, res) => {
     
 };
 
-module.exports = {createEntry, getEntry, assingProgress};
+const getLastEntryDate = async (req, res) => {
+  try{
+      const entry = await EntryModel.find()        
+      .sort({ entryDate: -1 })
+      .limit(1);;
+     
+        res.json({"Date" : entry[0].entryDate}); 
+   
+    
+  }catch(e)
+  {
+  console.log(e.message);
+     res.send(e.message);
+     
+  }
+  
+};
+
+module.exports = {createEntry, getEntry, assingProgress, entryMigration, getLastEntryDate};

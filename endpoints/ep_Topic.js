@@ -3,12 +3,14 @@ const router = express.Router();
 
 
 
-const {createTopic} = require("../controllers/c_Topic");
+const {createTopic, getTopic} = require("../controllers/c_Topic");
 const e = require("express");
 
 
 
 router.post("/", createTopic);
+
+router.get("/", getTopic);
 
 
 

@@ -8,7 +8,7 @@ const ejs = require('ejs');
 const puppeteer = require('puppeteer');
 
 
-const {createEntry, getEntry, assingProgress} = require("../controllers/c_Entry");
+const {createEntry, getEntry, assingProgress,entryMigration, getLastEntryDate} = require("../controllers/c_Entry");
 const { EntryModel } = require("../models");
 const e = require("express");
 
@@ -146,6 +146,10 @@ router.post("/React", async (req, res) => {
 router.post("/EntryByDate", getEntry);
 
 router.post("/submit-entry", createEntry);
+
+router.get("/entryMigration", entryMigration);
+
+router.get("/LastEntryDate", getLastEntryDate);
 
 
 

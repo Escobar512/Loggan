@@ -11,6 +11,20 @@ const createTopic = async (req, res) => {
         res.send(data);
     }catch(e)
     {
+        console.log(e);
+       res.sendStatus(500);
+    }
+    
+};
+
+const getTopic = async (req, res) => {
+    try{
+        let body = req.body;
+        const data = await TopicModel.find();
+        res.send(data);
+    }catch(e)
+    {
+        console.log(e);
        res.sendStatus(500);
     }
     
@@ -18,4 +32,4 @@ const createTopic = async (req, res) => {
 
 
 
-module.exports = {createTopic};
+module.exports = {createTopic, getTopic};
